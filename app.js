@@ -423,3 +423,122 @@ function render(timestamp, frame) {
 }
 
 // --- Gestos Táctiles y Control ---
+function onSelect() {
+    if (reticle.visible && model && !isPlaced) {
+        model.position.setFromMatrixPosition(reticle.matrix);
+        model.quaternion.setFromRotationMatrix(reticle.matrix);
+        model.scale.set(0, 0, 0);
+        model.visible = true;
+        isPlaced = true;
+        reticle.visible = false;
+
+        animateScaleIn();
+        
+        document.getElementById('instructions').textContent = "Usa gestos para mover, rotar o escalar";
+        document.getElementById('reset-btn').classList.remove('hidden');
+    }
+}
+
+function animateScaleIn() {
+    let scale = 0;
+    const duration = 600;
+    const start = performance.now();
+
+    function update(time) {
+        const elapsed = time - start;
+        const progress = Math.min(elapsed / duration, 1);
+        const ease = 1 - Math.pow(1 - progress, 3);
+        
+        scale = ease;
+        if (model) model.scale.set(scale, scale, scale);
+
+        if (progress < 1) {
+            requestAnimationFrame(update);
+        }
+    }
+    requestAnimationFrame(update);
+}
+
+function resetScene() {
+    isPlaced = false;
+    if (model) {
+        model.visible = false;
+        model.scale.set(1, 1, 1);
+    }
+    document.getElementById('instructions').textContent = "Apunta al suelo y mueve suavemente el móvil";
+    document.getElementById('reset-btn').classList.add('hidden');
+    
+    hitTestSourceRequested = false; 
+    hitTestSource = null;
+}
+
+function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+function onTouchStart(event) {
+    if (!isPlaced) return;
+
+    if (event.touches.length === 1) {
+        state = STATE.DRAG;
+        startingTouchPosition.set(event.touches[0].pageX, event.touches[0].pageY);
+        previousTouchPosition.copy(startingTouchPosition);
+    } else if (event.touches.length === 2) {
+        state = STATE.PINCH;
+        
+        const dx = event.touches[0].pageX - event.touches[1].pageX;
+        const dy = event.touches[0].pageY - event.touches[1].pageY;
+        initialTouchDistance = Math.sqrt(dx * dx + dy * dy);
+        initialScale.copy(model.scale);
+
+        initialAngle = Math.atan2(dy, dx);
+        initialRotation = model.rotation.y;
+    }
+}
+
+function onTouchMove(event) {
+    if (!isPlaced || !model) return;
+    event.preventDefault();
+
+    if (state === STATE.DRAG && event.touches.length === 1) {
+        handleDrag(event.touches[0].pageX, event.touches[0].pageY);
+
+    } else if (state === STATE.PINCH && event.touches.length === 2) {
+        const dx = event.touches[0].pageX - event.touches[1].pageX;
+        const dy = event.touches[0].pageY - event.touches[1].pageY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (initialTouchDistance > 0) {
+            const scaleFactor = distance / initialTouchDistance;
+            const newScale = Math.max(0.1, Math.min(initialScale.x * scaleFactor, 5.0));
+            model.scale.set(newScale, newScale, newScale);
+        }
+
+        const angle = Math.atan2(dy, dx);
+        const rotationChange = angle - initialAngle;
+        model.rotation.y = initialRotation - rotationChange;
+    }
+}
+
+function onTouchEnd(event) {
+    state = STATE.NONE;
+}
+
+function handleDrag(x, y) {
+    const mouse = new THREE.Vector2();
+    mouse.x = (x / window.innerWidth) * 2 - 1;
+    mouse.y = -(y / window.innerHeight) * 2 + 1;
+
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(mouse, camera);
+
+    const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -model.position.y);
+    const target = new THREE.Vector3();
+    
+    if (raycaster.ray.intersectPlane(plane, target)) {
+        model.position.x = target.x;
+        model.position.z = target.z;
+    }
+}
