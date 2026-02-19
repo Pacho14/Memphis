@@ -12,6 +12,8 @@ let hitTestSourceRequested = false;
 
 let model = null;
 let isPlaced = false;
+let isARMode = false; // True si WebXR está activo
+let deviceOS = detectOS(); // 'iOS' o 'Android'
 
 // Variables para gestos
 let initialTouchDistance = 0;
@@ -26,27 +28,18 @@ let state = STATE.NONE;
 let startingTouchPosition = new THREE.Vector2();
 let previousTouchPosition = new THREE.Vector2();
 
+// Detector de SO
+function detectOS() {
+    const ua = navigator.userAgent;
+    if (/iPad|iPhone|iPod/.test(ua)) return 'iOS';
+    if (/Android/.test(ua)) return 'Android';
+    return 'Desktop';
+}
+
 init();
 animate();
 
 function init() {
-    // Verificar si WebXR está disponible
-    if (!navigator.xr) {
-        showWebXRError();
-        return;
-    }
-
-    // Verificar si ARSession está soportada
-    navigator.xr.isSessionSupported('immersive-ar').then(supported => {
-        if (!supported) {
-            showWebXRError('AR no está soportado en este dispositivo');
-            return;
-        }
-    }).catch(err => {
-        console.error('Error verificando soporte AR:', err);
-        showWebXRError('Error al verificar soporte AR');
-    });
-
     container = document.createElement('div');
     document.body.appendChild(container);
 
@@ -66,34 +59,24 @@ function init() {
     renderer.xr.enabled = true;
     container.appendChild(renderer.domElement);
 
-    // Setup ARButton con 'dom-overlay' para permitir UI e interacción táctil
+    // Setup por SO
     const overlay = document.getElementById('overlay');
     const introScreen = document.getElementById('intro-screen');
     const arUI = document.getElementById('ar-ui');
     
-    try {
-        document.body.appendChild(ARButton.createButton(renderer, { 
-            requiredFeatures: ['hit-test'],
-            optionalFeatures: ['dom-overlay'],
-            domOverlay: { root: overlay }
-        }));
-    } catch (error) {
-        console.error('Error creando ARButton:', error);
-        showWebXRError('Error al crear botón AR: ' + error.message);
-        return;
+    if (deviceOS === 'iOS') {
+        // iOS: Modo 3D interactivo sin WebXR
+        initIOSMode(overlay, introScreen, arUI);
+    } else if (deviceOS === 'Android') {
+        // Android: Intentar WebXR
+        initAndroidMode(overlay, introScreen, arUI);
+    } else {
+        // Desktop: Fallback 3D
+        initDesktopMode(overlay, introScreen, arUI);
     }
 
-    // Detectar inicio de sesión AR para cambiar UI
-    renderer.xr.addEventListener('sessionstart', () => {
-        introScreen.style.display = 'none';
-        arUI.style.display = 'flex';
-    });
-
-    renderer.xr.addEventListener('sessionend', () => {
-        introScreen.style.display = 'block';
-        arUI.style.display = 'none';
-        resetScene();
-    });
+    // Cargar Modelo (común para todos)
+    loadModel();
 
     // Controlador para "Select" (toque simple para colocar)
     controller = renderer.xr.getController(0);
@@ -103,13 +86,128 @@ function init() {
     // Retícula
     reticle = new THREE.Mesh(
         new THREE.RingGeometry(0.15, 0.2, 32).rotateX(-Math.PI / 2),
-        new THREE.MeshBasicMaterial({ color: 0xffffff }) // Solo anillo blanco
+        new THREE.MeshBasicMaterial({ color: 0xffffff })
     );
     reticle.matrixAutoUpdate = false;
     reticle.visible = false;
     scene.add(reticle);
 
-    // Cargar Modelo
+    // Event Listeners para Gestos
+    overlay.addEventListener('touchstart', onTouchStart, { passive: false });
+    overlay.addEventListener('touchmove', onTouchMove, { passive: false });
+    overlay.addEventListener('touchend', onTouchEnd);
+
+    // Botón Reset
+    document.getElementById('reset-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        resetScene();
+    });
+
+    window.addEventListener('resize', onWindowResize);
+}
+
+// --- MODOS DE INICIALIZACIÓN ---
+
+function initAndroidMode(overlay, introScreen, arUI) {
+    // Detectar inicio de sesión AR
+    renderer.xr.addEventListener('sessionstart', () => {
+        introScreen.style.display = 'none';
+        arUI.style.display = 'flex';
+        isARMode = true;
+    });
+
+    renderer.xr.addEventListener('sessionend', () => {
+        introScreen.style.display = 'block';
+        arUI.style.display = 'none';
+        resetScene();
+        isARMode = false;
+    });
+
+    // Verificar soporte de WebXR en Android
+    if (!navigator.xr) {
+        console.warn('WebXR no disponible en este Android');
+        initDesktopMode(overlay, introScreen, arUI);
+        return;
+    }
+
+    navigator.xr.isSessionSupported('immersive-ar').then(supported => {
+        if (!supported) {
+            console.warn('AR no soportado');
+            initDesktopMode(overlay, introScreen, arUI);
+            return;
+        }
+        
+        // Crear botón AR
+        try {
+            const arButton = ARButton.createButton(renderer, {
+                requiredFeatures: ['hit-test'],
+                optionalFeatures: ['dom-overlay'],
+                domOverlay: { root: overlay }
+            });
+            document.body.appendChild(arButton);
+            console.log('ARButton creado exitosamente');
+        } catch (error) {
+            console.error('Error creando ARButton:', error);
+            initDesktopMode(overlay, introScreen, arUI);
+        }
+    }).catch(err => {
+        console.error('Error verificando soporte AR:', err);
+        initDesktopMode(overlay, introScreen, arUI);
+    });
+}
+
+function initIOSMode(overlay, introScreen, arUI) {
+    // iOS: Modo 3D interactivo sin WebXR
+    console.log('Iniciando modo iOS (3D interactivo)');
+    
+    introScreen.innerHTML = `
+        <h1>🎨 Visualizador 3D</h1>
+        <p>Usa tus dedos para interactuar con el modelo</p>
+        <p style="font-size: 0.85em; color: #999;">
+            • Un dedo: mover<br>
+            • Dos dedos: rotar y escalar
+        </p>
+    `;
+    
+    // Mostrar modelo inmediatamente en iOS
+    setTimeout(() => {
+        introScreen.style.display = 'none';
+        arUI.style.display = 'flex';
+        isPlaced = true;
+        if (model) {
+            model.visible = true;
+            model.position.z = -1;
+            animateScaleIn();
+        }
+    }, 2000);
+}
+
+function initDesktopMode(overlay, introScreen, arUI) {
+    // Desktop/Fallback: Modo 3D básico
+    console.log('Iniciando modo Desktop (3D básico)');
+    
+    introScreen.innerHTML = `
+        <h1>🎨 Visualizador 3D</h1>
+        <p>Para mejor experiencia, accede desde Android</p>
+        <p style="font-size: 0.85em; color: #999;">
+            Este dispositivo no soporta AR
+        </p>
+    `;
+    
+    // Auto-mostrar modelo
+    setTimeout(() => {
+        introScreen.style.display = 'none';
+        arUI.style.display = 'flex';
+        isPlaced = true;
+        if (model) {
+            model.visible = true;
+            model.position.z = -1.5;
+            animateScaleIn();
+        }
+    }, 2000);
+}
+
+function loadModel() {
     const loader = new GLTFLoader();
     loader.load('LAMPARA.glb',
         function (gltf) {
@@ -119,26 +217,14 @@ function init() {
             console.log("Model loaded successfully");
         },
         function (progress) {
-            console.log('Loading model:', (progress.loaded / progress.total * 100) + '%');
+            const percent = (progress.loaded / progress.total * 100).toFixed(0);
+            console.log('Loading model:', percent + '%');
         },
         function (error) {
             console.error('Error loading model:', error);
-            showWebXRError('Error cargando el modelo: ' + error.message);
+            alert('Error cargando el modelo. Verifica LAMPARA.glb en la carpeta del proyecto');
         }
     );
-
-    // Event Listeners para Gestos (Touch Events en el Overlay)
-    overlay.addEventListener('touchstart', onTouchStart, { passive: false });
-    overlay.addEventListener('touchmove', onTouchMove, { passive: false });
-    overlay.addEventListener('touchend', onTouchEnd);
-
-    // Botón Reset
-    document.getElementById('reset-btn').addEventListener('click', (e) => {
-        e.stopPropagation(); // Evitar que el click se propague al canvas/AR
-        resetScene();
-    });
-
-    window.addEventListener('resize', onWindowResize);
 }
 
 function onWindowResize() {
@@ -296,7 +382,8 @@ function animate() {
 }
 
 function render(timestamp, frame) {
-    if (frame) {
+    // Solo usar hit test en modo AR
+    if (frame && isARMode) {
         const referenceSpace = renderer.xr.getReferenceSpace();
         const session = renderer.xr.getSession();
 
@@ -323,7 +410,6 @@ function render(timestamp, frame) {
                 reticle.visible = true;
                 reticle.matrix.fromArray(hit.getPose(referenceSpace).transform.matrix);
                 
-                // Actualizar texto si estaba buscando
                 const instr = document.getElementById('instructions');
                 if (instr.textContent.includes('mueve')) instr.textContent = "Toca para colocar";
 
@@ -336,27 +422,4 @@ function render(timestamp, frame) {
     renderer.render(scene, camera);
 }
 
-// --- Funciones de Error ---
-
-function showWebXRError(message = 'WebXR no está disponible en tu dispositivo') {
-    const overlay = document.getElementById('overlay');
-    const introScreen = document.getElementById('intro-screen');
-    
-    if (introScreen) {
-        introScreen.innerHTML = `
-            <h1>❌ AR No Disponible</h1>
-            <p>${message}</p>
-            <p style="font-size: 0.9em; color: #999;">
-                WebXR requiere:
-                <ul style="text-align: left;">
-                    <li>Navegador soportado: Chrome/Edge en Android</li>
-                    <li>Dispositivo con sensor AR</li>
-                    <li>Conexión HTTPS (✓ GitHub Pages lo proporciona)</li>
-                </ul>
-            </p>
-        `;
-        introScreen.style.display = 'flex';
-    }
-    
-    console.error('WebXR Error:', message);
-}
+// --- Gestos Táctiles y Control ---
