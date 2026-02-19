@@ -83,8 +83,7 @@
 
         /* === ACTION BUTTON === */
         .ar-button {
-            all: unset;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: var(--spacing-2);
             background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
@@ -96,11 +95,8 @@
             cursor: pointer;
             box-shadow: var(--shadow-lg);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: absolute;
-            bottom: var(--spacing-6);
-            right: var(--spacing-5);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            z-index: 3;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
         }
 
         .ar-button:hover {
@@ -309,8 +305,6 @@
             .ar-button {
                 padding: 10px 20px;
                 font-size: 13px;
-                bottom: var(--spacing-4);
-                right: var(--spacing-4);
             }
 
             .info-card {
