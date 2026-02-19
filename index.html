@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Experiencia WebAR</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Import Map para Three.js -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <!-- Contenedor Principal (Overlay) -->
+    <div id="overlay">
+        <div id="intro-screen">
+            <h1>Visualizador AR</h1>
+            <p>Escanea tu entorno para colocar el objeto.</p>
+            <!-- El botón AR será inyectado aquí por Three.js o lo maneja nuestra lógica -->
+        </div>
+
+        <!-- UI durante la sesión AR -->
+        <div id="ar-ui" style="display: none;">
+            <div id="instructions">Apunta al suelo y mueve suavemente el móvil</div>
+            <button id="reset-btn" class="hidden">Reiniciar</button>
+        </div>
+    </div>
+
+    <!-- Script Principal -->
+    <script type="module" src="app.js"></script>
+</body>
+</html>
