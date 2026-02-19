@@ -60,6 +60,10 @@
             box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
             transition: all 0.3s ease;
             backdrop-filter: blur(10px);
+            position: fixed;
+            bottom: 40px;
+            right: 20px;
+            z-index: 100;
         }
 
         .ar-button:active {
@@ -153,12 +157,11 @@
         auto-rotate
         shadow-intensity="1"
         touch-action="pan-y">
-
-        <button slot="ar-button" class="ar-button">
-            📱 Ver en tu espacio
-        </button>
-
     </model-viewer>
+
+    <button class="ar-button" onclick="document.querySelector('#model-viewer').activateAR()">
+        📱 Ver en tu espacio
+    </button>
 
     <div id="info-overlay">
         <h2>🏺 Visualizador Memphis</h2>
