@@ -5,17 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, shrink-to-fit=no">
     <meta name="apple-mobile-web-app-capable" content="true">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#1a1a1a">
+    <meta name="theme-color" content="#ffffff">
     <meta name="format-detection" content="telephone=no">
     <meta name="x-ua-compatible" content="IE=edge">
     <meta name="content-type" content="text/html; charset=utf-8">
     <meta name="mobile-web-app-capable" content="yes">
-    <title>Visualizador Memphis 3D</title>
+    <title>Memphis 3D Viewer</title>
     
-    <!-- Model Viewer de Google -->
+    <!-- Google Model Viewer -->
     <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
     
     <style>
+        :root {
+            --color-primary: #2563eb;
+            --color-primary-light: #3b82f6;
+            --color-primary-dark: #1e40af;
+            --color-secondary: #0f172a;
+            --color-neutral-50: #f9fafb;
+            --color-neutral-100: #f3f4f6;
+            --color-neutral-200: #e5e7eb;
+            --color-neutral-300: #d1d5db;
+            --color-neutral-400: #9ca3af;
+            --color-neutral-500: #6b7280;
+            --color-neutral-600: #4b5563;
+            --color-neutral-700: #374151;
+            --color-neutral-800: #1f2937;
+            --color-neutral-900: #111827;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+            --spacing-2: 8px;
+            --spacing-3: 12px;
+            --spacing-4: 16px;
+            --spacing-5: 20px;
+            --spacing-6: 24px;
+            --spacing-8: 32px;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -36,121 +67,313 @@
         }
 
         body {
-            background: #1a1a1a;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--color-neutral-50) 0%, var(--color-neutral-100) 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+            letter-spacing: -0.4px;
+            color: var(--color-neutral-800);
         }
 
         model-viewer {
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
             display: block;
+            background: inherit;
         }
 
-        /* Botón AR personalizado */
-        .ar-button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            border-radius: 50px;
+        /* === HEADER / TOP BAR === */
+        .header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: var(--spacing-5);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 90;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.4) 100%);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-3);
+        }
+
+        .header-title h1 {
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            color: var(--color-secondary);
+        }
+
+        .header-badge {
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
             color: white;
-            padding: 12px 28px;
+            padding: 4px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: var(--shadow-md);
+        }
+
+        /* === ACTION BUTTON === */
+        .ar-button {
+            all: unset;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-2);
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+            color: white;
+            padding: var(--spacing-3) var(--spacing-5);
+            border-radius: var(--radius-lg);
             font-weight: 600;
             font-size: 14px;
             cursor: pointer;
-            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow-lg);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(8px);
             position: absolute;
-            bottom: 40px;
-            right: 20px;
+            bottom: var(--spacing-6);
+            right: var(--spacing-5);
             z-index: 100;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .ar-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 40px -8px rgba(37, 99, 235, 0.4);
         }
 
         .ar-button:active {
-            transform: scale(0.95);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+            transform: scale(0.96);
+            box-shadow: var(--shadow-md);
         }
 
-        /* Overlay de información */
-        #info-overlay {
+        /* === INFO CARD === */
+        .info-card {
             position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 16px 20px;
-            border-radius: 12px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            z-index: 99;
+            top: 80px;
+            left: var(--spacing-5);
+            max-width: 320px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-5);
+            box-shadow: var(--shadow-xl);
+            z-index: 85;
+            animation: slideInLeft 0.5s ease-out;
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .info-card-header {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--spacing-3);
+            margin-bottom: var(--spacing-4);
+        }
+
+        .info-card-icon {
+            font-size: 28px;
+            line-height: 1;
+        }
+
+        .info-card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--color-secondary);
+            line-height: 1.3;
+        }
+
+        .info-card-desc {
             font-size: 13px;
-            max-width: 85%;
+            color: var(--color-neutral-600);
+            line-height: 1.6;
+            margin-bottom: var(--spacing-3);
+        }
+
+        .info-card-hint {
+            font-size: 12px;
+            color: var(--color-neutral-500);
             font-weight: 500;
+            padding: var(--spacing-2) var(--spacing-3);
+            background: rgba(37, 99, 235, 0.08);
+            border-radius: var(--radius-sm);
+            border-left: 3px solid var(--color-primary);
         }
 
-        #info-overlay h2 {
-            margin-bottom: 8px;
-            font-size: 16px;
-            margin-top: 0;
-        }
-
-        #info-overlay p {
-            margin: 4px 0;
-            opacity: 0.85;
-            line-height: 1.4;
-        }
-
-        /* Instrucciones */
+        /* === INSTRUCTIONS === */
         .instructions {
             position: absolute;
-            bottom: 120px;
+            bottom: 100px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(15, 23, 42, 0.92);
+            backdrop-filter: blur(16px);
             color: white;
-            padding: 12px 20px;
-            border-radius: 8px;
-            font-size: 12px;
+            padding: var(--spacing-3) var(--spacing-5);
+            border-radius: var(--radius-lg);
+            font-size: 13px;
+            font-weight: 500;
             text-align: center;
-            backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.15);
             white-space: nowrap;
-            z-index: 98;
+            z-index: 80;
             display: none;
+            animation: fadeInUp 0.4s ease-out;
+            box-shadow: var(--shadow-xl);
         }
 
-        @media (max-width: 480px) {
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        /* === STATUS MESSAGES === */
+        .status-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-6);
+            max-width: 300px;
+            text-align: center;
+            z-index: 95;
+            display: none;
+            animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.92);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        .status-message h2 {
+            font-size: 20px;
+            margin-bottom: var(--spacing-3);
+            color: var(--color-secondary);
+        }
+
+        .status-message p {
+            font-size: 13px;
+            color: var(--color-neutral-600);
+            line-height: 1.6;
+        }
+
+        /* === RESPONSIVE === */
+        @media (max-width: 640px) {
+            .header {
+                padding: var(--spacing-4);
+            }
+
+            .header-title h1 {
+                font-size: 16px;
+            }
+
+            .header-badge {
+                font-size: 10px;
+                padding: 3px 10px;
+            }
+
             .ar-button {
-                bottom: 20px;
-                right: 15px;
                 padding: 10px 20px;
-                font-size: 12px;
+                font-size: 13px;
+                bottom: var(--spacing-4);
+                right: var(--spacing-4);
+            }
+
+            .info-card {
+                top: 70px;
+                left: var(--spacing-4);
+                right: var(--spacing-4);
+                max-width: none;
+                padding: var(--spacing-4);
+            }
+
+            .info-card-title {
+                font-size: 16px;
             }
 
             .instructions {
-                font-size: 10px;
-                padding: 10px 16px;
                 bottom: 80px;
-            }
-
-            #info-overlay {
                 font-size: 12px;
-                padding: 12px 16px;
-                max-width: 90%;
+                padding: 10px 16px;
             }
 
-            #info-overlay h2 {
-                font-size: 14px;
+            .status-message {
+                padding: var(--spacing-5);
+                max-width: 280px;
+            }
+
+            .status-message h2 {
+                font-size: 18px;
+            }
+
+            .status-message p {
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .header-title {
+                flex-direction: column;
+                gap: var(--spacing-2);
+            }
+
+            .header-badge {
+                width: 100%;
+                text-align: center;
+            }
+
+            .info-card {
+                max-width: calc(100% - 32px);
+            }
+
+            .ar-button {
+                padding: 10px 16px;
+                font-size: 12px;
             }
         }
     </style>
 </head>
 
 <body>
+    <!-- Model Viewer -->
     <model-viewer 
         id="model-viewer"
         src="LAMPARA.glb"
-        alt="Modelo Memphis"
+        alt="Memphis 3D Model"
         ar
         ar-modes="webxr scene-viewer quick-look"
         camera-controls
@@ -159,82 +382,103 @@
         touch-action="pan-y">
 
         <button slot="ar-button" class="ar-button">
-            📱 Ver en tu espacio
+            <span>📱</span>
+            <span>Ver en tu espacio</span>
         </button>
 
     </model-viewer>
 
-    <div id="info-overlay">
-        <h2>🏺 Visualizador Memphis</h2>
-        <p>Toca el botón AR para ver en tu espacio</p>
-        <p style="font-size: 11px; margin-top: 8px; opacity: 0.7;">Usa dos dedos para rotar</p>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-title">
+            <h1>Memphis</h1>
+            <div class="header-badge">3D Viewer</div>
+        </div>
     </div>
 
+    <!-- Info Card -->
+    <div class="info-card" id="info-card">
+        <div class="info-card-header">
+            <div class="info-card-icon">🏺</div>
+            <div>
+                <h2 class="info-card-title">Experiencia AR</h2>
+            </div>
+        </div>
+        <p class="info-card-desc">
+            Observa el modelo en 3D y visualízalo en tu entorno con realidad aumentada.
+        </p>
+        <div class="info-card-hint">
+            💡 Toca el botón AR para comenzar
+        </div>
+    </div>
+
+    <!-- Instructions -->
     <div class="instructions" id="instructions">
         👆 Usa gestos para controlar el modelo
     </div>
 
+    <!-- Status Messages -->
+    <div class="status-message" id="status-message"></div>
+
     <script>
         const modelViewer = document.querySelector('#model-viewer');
+        const infoCard = document.getElementById('info-card');
         const instructions = document.getElementById('instructions');
-        const infoOverlay = document.getElementById('info-overlay');
-
-        console.log('🚀 Model Viewer inicializando...');
+        const statusMessage = document.getElementById('status-message');
 
         if (modelViewer) {
+            // AR Status Handler
             modelViewer.addEventListener('ar-status', (event) => {
-                console.log('📡 AR Status:', event.detail.status);
+                console.log('AR Status:', event.detail.status);
                 
                 if (event.detail.status === 'not-presenting') {
-                    infoOverlay.style.display = 'block';
+                    infoCard.style.display = 'block';
                     instructions.style.display = 'none';
+                    statusMessage.style.display = 'none';
                 } else if (event.detail.status === 'session-started') {
-                    infoOverlay.style.display = 'none';
+                    infoCard.style.display = 'none';
                     instructions.style.display = 'block';
+                    statusMessage.style.display = 'none';
                 } else if (event.detail.status === 'failed') {
-                    infoOverlay.innerHTML = `
-                        <h2>⚠️ AR no disponible</h2>
-                        <p>Tu dispositivo no soporta AR.</p>
-                        <p style="font-size: 11px; margin-top: 8px;">Usa el modo 3D de vista previa en su lugar.</p>
-                    `;
+                    showStatus('warning', '⚠️ AR No Disponible', 'Tu dispositivo no soporta AR. Usa el modo 3D en su lugar.');
                 }
             });
 
+            // Load Handler
             modelViewer.addEventListener('load', () => {
-                console.log('✅ Modelo cargado correctamente');
+                console.log('✅ Modelo cargado');
             });
 
+            // Error Handler
             modelViewer.addEventListener('error', (event) => {
-                console.error('❌ Error cargando modelo:', event);
-                infoOverlay.innerHTML = `
-                    <h2>❌ Error</h2>
-                    <p>No se pudo cargar el modelo.</p>
-                    <p style="font-size: 11px; margin-top: 8px;">Intenta recargar la página.</p>
-                `;
+                console.error('❌ Error:', event);
+                showStatus('error', '❌ Error', 'No se pudo cargar el modelo. Intenta recargar.');
             });
 
-            console.log('✅ Model Viewer listeners configurados');
-        } else {
-            console.error('❌ Model Viewer no encontrado');
+            console.log('✅ Memphis 3D Viewer Initialized');
         }
 
-        // Prevenir problemas de viewport en móviles
+        function showStatus(type, title, message) {
+            statusMessage.innerHTML = `<h2>${title}</h2><p>${message}</p>`;
+            statusMessage.style.display = 'block';
+        }
+
+        // Viewport Management
         document.addEventListener('DOMContentLoaded', () => {
             document.documentElement.style.height = '100vh';
             document.body.style.height = '100vh';
-            
-            // Evitar zoom pinch en iOS
-            document.addEventListener('gesturestart', (e) => {
-                e.preventDefault();
-            });
         });
 
-        // Manejador de orientación
         window.addEventListener('orientationchange', () => {
             setTimeout(() => {
                 document.documentElement.style.height = '100vh';
                 document.body.style.height = '100vh';
             }, 100);
+        });
+
+        // Prevent Pinch Zoom
+        document.addEventListener('gesturestart', (e) => {
+            e.preventDefault();
         });
     </script>
 </body>
