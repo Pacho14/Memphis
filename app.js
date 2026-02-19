@@ -30,6 +30,23 @@ init();
 animate();
 
 function init() {
+    // Verificar si WebXR está disponible
+    if (!navigator.xr) {
+        showWebXRError();
+        return;
+    }
+
+    // Verificar si ARSession está soportada
+    navigator.xr.isSessionSupported('immersive-ar').then(supported => {
+        if (!supported) {
+            showWebXRError('AR no está soportado en este dispositivo');
+            return;
+        }
+    }).catch(err => {
+        console.error('Error verificando soporte AR:', err);
+        showWebXRError('Error al verificar soporte AR');
+    });
+
     container = document.createElement('div');
     document.body.appendChild(container);
 
@@ -54,11 +71,17 @@ function init() {
     const introScreen = document.getElementById('intro-screen');
     const arUI = document.getElementById('ar-ui');
     
-    document.body.appendChild(ARButton.createButton(renderer, { 
-        requiredFeatures: ['hit-test'],
-        optionalFeatures: ['dom-overlay'],
-        domOverlay: { root: overlay }
-    }));
+    try {
+        document.body.appendChild(ARButton.createButton(renderer, { 
+            requiredFeatures: ['hit-test'],
+            optionalFeatures: ['dom-overlay'],
+            domOverlay: { root: overlay }
+        }));
+    } catch (error) {
+        console.error('Error creando ARButton:', error);
+        showWebXRError('Error al crear botón AR: ' + error.message);
+        return;
+    }
 
     // Detectar inicio de sesión AR para cambiar UI
     renderer.xr.addEventListener('sessionstart', () => {
@@ -88,13 +111,21 @@ function init() {
 
     // Cargar Modelo
     const loader = new GLTFLoader();
-    loader.load('LAMPARA.glb', function (gltf) {
-        model = gltf.scene;
-        // Ajuste inicial si es necesario, pero lo haremos al colocar
-        model.visible = false; 
-        scene.add(model);
-        console.log("Model loaded");
-    });
+    loader.load('LAMPARA.glb',
+        function (gltf) {
+            model = gltf.scene;
+            model.visible = false;
+            scene.add(model);
+            console.log("Model loaded successfully");
+        },
+        function (progress) {
+            console.log('Loading model:', (progress.loaded / progress.total * 100) + '%');
+        },
+        function (error) {
+            console.error('Error loading model:', error);
+            showWebXRError('Error cargando el modelo: ' + error.message);
+        }
+    );
 
     // Event Listeners para Gestos (Touch Events en el Overlay)
     overlay.addEventListener('touchstart', onTouchStart, { passive: false });
@@ -303,4 +334,29 @@ function render(timestamp, frame) {
     }
 
     renderer.render(scene, camera);
+}
+
+// --- Funciones de Error ---
+
+function showWebXRError(message = 'WebXR no está disponible en tu dispositivo') {
+    const overlay = document.getElementById('overlay');
+    const introScreen = document.getElementById('intro-screen');
+    
+    if (introScreen) {
+        introScreen.innerHTML = `
+            <h1>❌ AR No Disponible</h1>
+            <p>${message}</p>
+            <p style="font-size: 0.9em; color: #999;">
+                WebXR requiere:
+                <ul style="text-align: left;">
+                    <li>Navegador soportado: Chrome/Edge en Android</li>
+                    <li>Dispositivo con sensor AR</li>
+                    <li>Conexión HTTPS (✓ GitHub Pages lo proporciona)</li>
+                </ul>
+            </p>
+        `;
+        introScreen.style.display = 'flex';
+    }
+    
+    console.error('WebXR Error:', message);
 }
