@@ -82,31 +82,31 @@
         }
 
         /* === ACTION BUTTON === */
+        model-viewer::part(ar-button) {
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%) !important;
+            color: white !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            border-radius: 12px !important;
+            font-weight: 600 !important;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        model-viewer::part(ar-button):hover {
+            box-shadow: 0 20px 40px -8px rgba(37, 99, 235, 0.4) !important;
+        }
+
         .ar-button {
-            display: inline-flex;
-            align-items: center;
-            gap: var(--spacing-2);
-            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
-            color: white;
-            padding: var(--spacing-3) var(--spacing-5);
-            border-radius: var(--radius-lg);
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            box-shadow: var(--shadow-lg);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%) !important;
+            color: white !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            border-radius: 12px !important;
+            font-weight: 600 !important;
+            font-size: 14px !important;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
         }
 
         .ar-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 20px 40px -8px rgba(37, 99, 235, 0.4);
-        }
-
-        .ar-button:active {
-            transform: scale(0.96);
-            box-shadow: var(--shadow-md);
+            box-shadow: 0 20px 40px -8px rgba(37, 99, 235, 0.4) !important;
         }
 
         /* === HEADER / TOP BAR === */
@@ -374,12 +374,6 @@
         auto-rotate
         shadow-intensity="1"
         touch-action="pan-y">
-
-        <button slot="ar-button" class="ar-button">
-            <span>📱</span>
-            <span>Ver en tu espacio</span>
-        </button>
-
     </model-viewer>
 
     <!-- Header -->
