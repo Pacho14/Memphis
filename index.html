@@ -144,8 +144,7 @@
         camera-controls
         auto-rotate
         shadow-intensity="1"
-        touch-action="pan-y"
-        reveal="manual">
+        touch-action="pan-y">
 
         <button slot="ar-button" class="ar-button">
             📱 Ver en tu espacio
@@ -170,7 +169,6 @@
 
         console.log('🚀 Model Viewer inicializando...');
 
-        // Listener para estado de AR
         if (modelViewer) {
             modelViewer.addEventListener('ar-status', (event) => {
                 console.log('📡 AR Status:', event.detail.status);
@@ -190,7 +188,6 @@
                 }
             });
 
-            // Listener para carga
             modelViewer.addEventListener('load', () => {
                 console.log('✅ Modelo cargado correctamente');
             });
@@ -208,119 +205,6 @@
         } else {
             console.error('❌ Model Viewer no encontrado');
         }
-    </script>
-</body>
-</html>
-        }
-
-        /* Instrucciones */
-        .instructions {
-            position: absolute;
-            bottom: 120px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 8px;
-            font-size: 12px;
-            text-align: center;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            white-space: nowrap;
-            z-index: 98;
-        }
-
-        @media (max-width: 480px) {
-            .ar-button {
-                bottom: 20px;
-                padding: 10px 20px;
-                font-size: 12px;
-            }
-
-            .instructions {
-                font-size: 10px;
-                padding: 10px 16px;
-                bottom: 80px;
-            }
-
-            #info-overlay {
-                font-size: 11px;
-                padding: 12px 16px;
-            }
-        }
-    </style>
-</head>
-
-<body>
-    <div id="info-overlay">
-        <h2>🏺 Visualizador Memphis</h2>
-        <p>Toca el botón AR para ver en tu espacio</p>
-        <p style="font-size: 11px; margin-top: 8px; opacity: 0.7;">Usa dos dedos para rotar</p>
-    </div>
-
-    <model-viewer 
-        id="model-viewer"
-        src="LAMPARA.glb"
-        alt="Modelo 3D Memphis"
-        ar
-        ar-modes="webxr scene-viewer quick-look"
-        camera-controls
-        auto-rotate
-        shadow-intensity="1"
-        touch-action="pan-y"
-        poster="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJkMmQyZCIvPjwvc3ZnPg==">
-
-        <button slot="ar-button" class="ar-button">
-            📱 Ver en tu espacio
-        </button>
-
-    </model-viewer>
-
-    <div class="instructions" id="instructions" style="display:none;">
-        👆 Usa gestos para controlar
-    </div>
-
-    <script>
-        const modelViewer = document.querySelector('#model-viewer');
-        const instructions = document.getElementById('instructions');
-        const infoOverlay = document.getElementById('info-overlay');
-
-        // Detectar cuando inicia AR
-        modelViewer.addEventListener('ar-status', (event) => {
-            console.log('AR Status:', event.detail.status);
-            
-            if (event.detail.status === 'not-presenting') {
-                infoOverlay.style.display = 'block';
-                instructions.style.display = 'none';
-            } else if (event.detail.status === 'session-started') {
-                infoOverlay.style.display = 'none';
-                instructions.style.display = 'block';
-                instructions.textContent = '👆 Usa gestos para controlar el modelo';
-            } else if (event.detail.status === 'failed') {
-                infoOverlay.innerHTML = `
-                    <h2>⚠️ AR no disponible</h2>
-                    <p>Tu dispositivo no soporta AR.</p>
-                    <p style="font-size: 11px; margin-top: 8px;">Usa el modo 3D de vista previa en su lugar.</p>
-                `;
-            }
-        });
-
-        // Detectar carga
-        modelViewer.addEventListener('load', () => {
-            console.log('✓ Modelo cargado');
-        });
-
-        modelViewer.addEventListener('error', (event) => {
-            console.error('✗ Error cargando modelo:', event.detail);
-            infoOverlay.innerHTML = `
-                <h2>❌ Error</h2>
-                <p>No se pudo cargar el modelo.</p>
-                <p style="font-size: 11px; margin-top: 8px;">Intenta recargar la página.</p>
-            `;
-        });
-
-        console.log('✓ Visualizador Memphis initialized');
     </script>
 </body>
 </html>
