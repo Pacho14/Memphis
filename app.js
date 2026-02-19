@@ -169,8 +169,8 @@ function initIOSMode(overlay, introScreen, arUI) {
         </p>
     `;
     
-    // Mostrar modelo inmediatamente en iOS
-    setTimeout(() => {
+    // Esperar a que el modelo cargue (máximo 8 segundos)
+    waitForModel(() => {
         introScreen.style.display = 'none';
         arUI.style.display = 'flex';
         isPlaced = true;
@@ -178,8 +178,10 @@ function initIOSMode(overlay, introScreen, arUI) {
             model.visible = true;
             model.position.z = -1;
             animateScaleIn();
+        } else {
+            showFallbackUI(introScreen, arUI);
         }
-    }, 2000);
+    });
 }
 
 function initDesktopMode(overlay, introScreen, arUI) {
@@ -194,8 +196,8 @@ function initDesktopMode(overlay, introScreen, arUI) {
         </p>
     `;
     
-    // Auto-mostrar modelo
-    setTimeout(() => {
+    // Esperar a que el modelo cargue
+    waitForModel(() => {
         introScreen.style.display = 'none';
         arUI.style.display = 'flex';
         isPlaced = true;
@@ -203,28 +205,65 @@ function initDesktopMode(overlay, introScreen, arUI) {
             model.visible = true;
             model.position.z = -1.5;
             animateScaleIn();
+        } else {
+            showFallbackUI(introScreen, arUI);
         }
-    }, 2000);
+    });
 }
 
 function loadModel() {
     const loader = new GLTFLoader();
-    loader.load('LAMPARA.glb',
+    // Ensure correct path for GitHub Pages
+    const modelPath = './LAMPARA.glb';
+    
+    console.log('Intentando cargar modelo desde:', modelPath);
+    
+    loader.load(modelPath,
         function (gltf) {
             model = gltf.scene;
             model.visible = false;
             scene.add(model);
-            console.log("Model loaded successfully");
+            console.log("✓ Model loaded successfully");
         },
         function (progress) {
             const percent = (progress.loaded / progress.total * 100).toFixed(0);
             console.log('Loading model:', percent + '%');
         },
         function (error) {
-            console.error('Error loading model:', error);
-            alert('Error cargando el modelo. Verifica LAMPARA.glb en la carpeta del proyecto');
+            console.error('✗ Error loading model:', error);
+            model = null; // Mark model as failed
         }
     );
+}
+
+function waitForModel(callback, timeout = 8000) {
+    const startTime = Date.now();
+    
+    function check() {
+        if (model) {
+            console.log('✓ Modelo cargado, iniciando...');
+            callback();
+        } else if (Date.now() - startTime < timeout) {
+            setTimeout(check, 500);
+        } else {
+            console.warn('⏱ Timeout esperando modelo');
+            callback();
+        }
+    }
+    
+    check();
+}
+
+function showFallbackUI(introScreen, arUI) {
+    introScreen.innerHTML = `
+        <h1>⚠️ Modelo no disponible</h1>
+        <p>El modelo 3D no se cargó correctamente.</p>
+        <p style="font-size: 0.85em; color: #999;">
+            Intenta recargar la página.
+        </p>
+    `;
+    introScreen.style.display = 'flex';
+    arUI.style.display = 'none';
 }
 
 function onWindowResize() {
