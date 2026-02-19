@@ -96,12 +96,11 @@
             cursor: pointer;
             box-shadow: var(--shadow-lg);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            backdrop-filter: blur(8px);
-            position: fixed;
+            position: absolute;
             bottom: var(--spacing-6);
             right: var(--spacing-5);
-            z-index: 100;
             border: 1px solid rgba(255, 255, 255, 0.2);
+            z-index: 3;
         }
 
         .ar-button:hover {
@@ -381,13 +380,13 @@
         auto-rotate
         shadow-intensity="1"
         touch-action="pan-y">
-    </model-viewer>
 
-    <!-- AR Button -->
-    <button class="ar-button" id="ar-button">
-        <span>📱</span>
-        <span>Ver en tu espacio</span>
-    </button>
+        <button slot="ar-button" class="ar-button">
+            <span>📱</span>
+            <span>Ver en tu espacio</span>
+        </button>
+
+    </model-viewer>
 
     <!-- Header -->
     <div class="header">
